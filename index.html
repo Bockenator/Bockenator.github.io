@@ -38,6 +38,17 @@
         color: green;
 				text-align: left;
 			}
+
+      #TESTTHING{
+        font-family: Trebuchet;
+        position: absolute;
+        display: block;
+        top: 10%;
+				padding: 10px;
+				width: 100%;
+        color: green;
+				text-align: left;
+      }
       #UIbuttons{
         opacity: 0;
         font-family: Trebuchet;
@@ -48,10 +59,10 @@
 				width: 100%;
         color: green;
 				text-align: left;
-        animation: fadein 3s ease-in-out;
-        -moz-animation: fadein 3s ease-in-out; /* Firefox */
-        -webkit-animation: fadein 3s ease-in-out; /* Safari and Chrome */
-        -o-animation: fadein 3s ease-in-out; /* Opera */
+        animation: fadein 2s ease-in-out;
+        -moz-animation: fadein 2s ease-in-out; /* Firefox */
+        -webkit-animation: fadein 2s ease-in-out; /* Safari and Chrome */
+        -o-animation: fadein 2s ease-in-out; /* Opera */
       }
 
       #UIbuttonsTest{
@@ -64,11 +75,11 @@
         color: green;
 				text-align: left;
         opacity: 0;
-        -webkit-transition: all 4s ease-in-out;
-        -moz-transition: all 4s ease-in-out;
-        -ms-transition: all 4s ease-in-out;
-        -o-transition: all 4s ease-in-out;
-        transition: all 4s ease-in-out;
+        -webkit-transition: all 2s ease-in-out;
+        -moz-transition: all 2s ease-in-out;
+        -ms-transition: all 2s ease-in-out;
+        -o-transition: all 2s ease-in-out;
+        transition: all 2s ease-in-out;
       }
 
 @keyframes fadein {
@@ -116,11 +127,11 @@
         background-color: black;
         text-align: center;
         opacity: 0;
-        -webkit-transition: all 4s ease-in-out;
-        -moz-transition: all 4s ease-in-out;
-        -ms-transition: all 4s ease-in-out;
-        -o-transition: all 4s ease-in-out;
-        transition: all 4s ease-in-out;
+        -webkit-transition: all 3s ease-in-out;
+        -moz-transition: all 3s ease-in-out;
+        -ms-transition: all 3s ease-in-out;
+        -o-transition: all 3s ease-in-out;
+        transition: all 3s ease-in-out;
       }
       #myBar {
         position: relative;
@@ -136,6 +147,40 @@
         -o-transition: all 3s ease-in-out;
         transition: all 3s ease-in-out;
       }
+
+      .slidecontainer {
+    width: 10%; /* Width of the outside container */
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
 
   canvas {
      width: 100%;
@@ -174,17 +219,13 @@
   </div>
 
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="js/three.js"></script>
   <script src="js/three.js-master/examples/js/controls/OrbitControls.js"></script>
   <script src="js/three.js-master/src/lights/PointLight.js"></script>
   <script src="OPCTemp.js"></script>
   <script type="text/javascript">
 
-//   $('#fileInput').on('click', function() {
-//     if ($('#form').css('opacity') == 0) $('#form').css('opacity', 1);
-//     else $('#form').css('opacity', 0);
-// });
 
   //init progress bar variables
   var bar_prog = 0;
@@ -289,7 +330,23 @@
     return grid;
   }
 
+  function setupPlaybackUI(){
+    if ($('#UIbuttonsTest').css('opacity') == 0) $('#UIbuttonsTest').css('opacity', 1);
+    if ($('#myBar').css('opacity') == 0) $('#myBar').css('opacity', 1);
+    if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
+    if ($('.info-page').css('opacity') == 1) $('.info-page').css('opacity', 0);
+  }
 
+  function loadTest(){
+    $.get( "https://bockenator.github.io/test.txt", function( data ) {
+      var test_text_load = data
+      var splitRes = data.split('\n');
+      rem_text = splitRes;
+      setupPlaybackUI();
+      file_read = true;
+      sim_loop();
+    });
+  }
   //when file is loaded begin running the animation
   window.onload = function() {
     var fileInput = document.getElementById('fileInput');
@@ -303,10 +360,6 @@
 
         //when the file is loaded is when we start doing stuff
         reader.onload = function(e) {
-          if ($('#UIbuttonsTest').css('opacity') == 0) $('#UIbuttonsTest').css('opacity', 1);
-          if ($('#myBar').css('opacity') == 0) $('#myBar').css('opacity', 1);
-          if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
-          if ($('.info-page').css('opacity') == 1) $('.info-page').css('opacity', 0);
           //split the input files into lines
           var splitRes = reader.result.split('\n')
           rem_text = splitRes;
@@ -319,6 +372,7 @@
             //PAUSED = true;
             RUNNING = false;
           }
+          setupPlaybackUI();
           sim_loop();
 
         }
@@ -786,6 +840,9 @@
   </script>
   <div id="UIbuttonsTest">
     <p>Playback Controls</p>
+    <div class="slidecontainer">
+      <input type="range" min="10" max="1000" value="100" class="slider" id="myRange">
+    </div>
     <input id="simSpeed" class="uiinput" type="text" name="test_text" value="100">
     <input id="simSpeedSubmit" class="uiinput" type="submit" name="test_button" value="Submit" onclick="javascript: setSpeed();">
     <input id="pauseButton" class="uiinput" type="submit" name="pause_button" value="Pause" onclick="javascript: pauseFunc();">
@@ -794,6 +851,23 @@
     <input id="backwardsButton" class="uiinput" type="submit" name="backwards_button" value="Reverse" onclick="javascript: playForward();">
     <input id="chemsigButton" class="uiinput" type="submit" name="chemsig_button" value="Show/Hide Signals" onclick="javascript: showhideSignals();">
     <input id="gridButton" class="uiinput" type="submit" name="grid_button" value="Show/Hide Grid" onclick="javascript: showhideGrid();">
+    <input id="loadTestButton" class="uiinput" type="submit" name="load_test_button" value="Load Test File" onclick="javascript: loadTest();">
   </div>
+
+  <div id="TESTTHING">
+    <p>LOAD</p>
+    <input id="loadTestButton" class="uiinput" type="submit" name="load_test_button" value="Load Test File" onclick="javascript: loadTest();">
+  </div>
+  <script type="text/javascript">
+    var slider = document.getElementById("myRange");
+    // var output = document.getElementById("simSpeed");
+    // output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+      document.getElementById("simSpeed").value = slider.value;
+      setSpeed();
+    }
+  </script>
 </body>
 </html>
