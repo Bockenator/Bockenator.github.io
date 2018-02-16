@@ -49,6 +49,22 @@
         color: green;
 				text-align: left;
       }
+
+      #Legend{
+        opacity: 0;
+        font-family: Trebuchet;
+        position: absolute;
+        display: block;
+        top: 25%;
+				padding: 10px;
+				width: 20%;
+        color: green;
+        text-align: right;
+        animation: fadein 2s ease-in-out;
+        -moz-animation: fadein 2s ease-in-out; /* Firefox */
+        -webkit-animation: fadein 2s ease-in-out; /* Safari and Chrome */
+        -o-animation: fadein 2s ease-in-out; /* Opera */
+      }
       #UIbuttons{
         opacity: 0;
         font-family: Trebuchet;
@@ -370,6 +386,7 @@
     if ($('#UIbuttonsTest').css('opacity') == 0) $('#UIbuttonsTest').css('opacity', 1);
     if ($('#myBar').css('opacity') == 0) $('#myBar').css('opacity', 1);
     if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
+    if ($('#Legend').css('opacity') == 0) $('#Legend').css('opacity', 1);
     if ($('.info-page').css('opacity') == 1) $('.info-page').css('opacity', 0);
 
     document.getElementById('page-wrapper').style.height = '20%';
@@ -914,7 +931,16 @@
       </div>
     </div>
   </div>
-
+  <div style="display: flex; justify-content: flex-end;">
+    <div id="Legend">
+      <p>Blue Ball = Static OPC</p>
+      <p>Red Ball = Moving OPC</p>
+      <p>Yellow Ball = Oligodendrocyte</p>
+      <p>Red 3D Cube = Lesion</p>
+      <p>Red 2D Square = Chemo-Reppelent</p>
+      <p>Green 2D Square = Chemo-Attractant</p>
+    </div>
+  </div>
   <script type="text/javascript">
     var slider = document.getElementById("myRange");
     // var output = document.getElementById("simSpeed");
