@@ -45,7 +45,7 @@
         display: block;
         top: 10%;
 				padding: 10px;
-				width: 100%;
+				width: 150px;
         color: green;
 				text-align: left;
       }
@@ -278,6 +278,8 @@
   <script type="text/javascript">
 
 
+  var FORWARD = true;
+
   //init progress bar variables
   var bar_prog = 0;
   var bar_width = 0.4;
@@ -288,7 +290,12 @@
   function update_bar(){
     var elem = document.getElementById("myBar");
     if (bar_prog < 100){
-      bar_prog+=bar_width;
+      if(FORWARD){
+        bar_prog+=bar_width;
+      }
+      else{
+        bar_prog-=bar_width;
+      }
       elem.style.width = bar_prog+'%';
       elem.innerHTML = parseInt(bar_prog) * 1 + '%';
     }
@@ -307,7 +314,6 @@
   var file_read = false;
   var SIMULATION_SPEED = 100;
   var PAUSED = false;
-  var FORWARD = true;
   var RUNNING = false;
   var ANIMATION_ID;
   var HIDE_SIGNALS = false;
@@ -650,7 +656,7 @@
 
 
       for (var j = 1; j<= SIMULATION_SPEED; j++) {
-        if (count < (loop_length)){
+        if ((count < (loop_length)) && ((count >= 0) || FORWARD)){
           //count = 0;
 
           //var command = rem_text[count].match(/^(\S+)\s(.*)/).slice(1);
@@ -672,7 +678,6 @@
           }
 
           else if (command == BIRTH_VAR){
-
             var cell_type = entry[1];
             var cell_id = entry[2];
             var unparsed_pos = entry[3].split(',');
@@ -713,6 +718,9 @@
               box_list[cell_id].position.z = y_pos;
               no_boxes = no_boxes + 1;
             }
+            // if (!(cell_id in sphere_list)){
+            //   window.alert("DIDNT ADD NEW CELL");
+            // }
           }
           //ALREADY BASED ON SPHERE_LIST BEING A DICTIONARY
           else if(command == "move"){
@@ -721,6 +729,9 @@
             var x_pos = parseFloat(unparsed_pos[0]);
             var y_pos = parseFloat(unparsed_pos[1]);
             var z_pos = parseFloat(unparsed_pos[2]);
+            if (!(cell_id in sphere_list)){
+              window.alert("MOVE NOT VALID");
+            }
             sphere_list[cell_id].position.x = x_pos;
             //Y=Z to preserve 2D-ness
             sphere_list[cell_id].position.z = y_pos;
@@ -728,7 +739,7 @@
           }
           //NEED TO DEAL WITH OBJECTS BEING REMOVED FROM START OF LIST
           else if(command == DIE_VAR){
-            var cell_id =entry[1];
+            var cell_id=entry[2];
             //scene.remove(sphere_list[sphere]);
             //sphere_list.splice(sphere, 1);
             scene.remove(sphere_list[cell_id]);
@@ -737,9 +748,23 @@
 
           }
           else if(command == REPAIR_VAR){
-            var lesion_id = parseInt(entry[1]);
-            scene.remove(box_list[lesion_id]);
-            delete box_list[lesion_id];
+            if (FORWARD){
+              var lesion_id = entry[1];
+              scene.remove(box_list[lesion_id]);
+              delete box_list[lesion_id];
+            }
+            else{
+              var cell_id = entry[1];
+              var unparsed_pos = entry[2].split(',');
+              var x_pos = parseFloat(unparsed_pos[0]);
+              var y_pos = parseFloat(unparsed_pos[1]);
+              box_list[cell_id] = new THREE.Mesh( geometryBox, materialL );
+              scene.add(box_list[cell_id]);
+              box_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              box_list[cell_id].position.z = y_pos;
+              no_boxes = no_boxes + 1;
+            }
           }
 
           else if (command == REMOVE_SOURCE_VAR){
@@ -853,31 +878,30 @@
 
   function playForward(){
     FORWARD = true;
-    var BIRTH_VAR = "birth";
-    var DEATH_VAR = "death";
-    var SHRINK_VAR = "shrink";
-    var GROW_VAR = "grow";
-    var REPULSE_VAR = "repulse";
-    var ATTRACT_VAR = "attract";
-    var SOURCE_REPULSE_VAR = "source_repulse";
-    var SOURCE_ATTRACT_VAR = "source_attract";
-    var REMOVE_SOURCE_VAR = "remove";
-    var DIE_VAR = "die";
-    var REPAIR_VAR = "repair";
+    BIRTH_VAR = "birth";
+    SHRINK_VAR = "shrink";
+    GROW_VAR = "grow";
+    REPULSE_VAR = "repulse";
+    ATTRACT_VAR = "attract";
+    SOURCE_REPULSE_VAR = "source_repulse";
+    SOURCE_ATTRACT_VAR = "source_attract";
+    REMOVE_SOURCE_VAR = "remove";
+    DIE_VAR = "die";
+    REPAIR_VAR = "repair";
   }
 
   function playBackward(){
     FORWARD = false;
-    var BIRTH_VAR = "death";
-    var SHRINK_VAR = "grow";
-    var GROW_VAR = "shrink";
-    var REPULSE_VAR = "repulse";
-    var ATTRACT_VAR = "attract";
-    var SOURCE_REPULSE_VAR = "source_repulse";
-    var SOURCE_ATTRACT_VAR = "source_attract";
-    var REMOVE_SOURCE_VAR = "remove";
-    var DIE_VAR = "birth";
-    var REPAIR_VAR = "repair";
+    BIRTH_VAR = "die";
+    SHRINK_VAR = "grow";
+    GROW_VAR = "shrink";
+    REPULSE_VAR = "attract";
+    ATTRACT_VAR = "repulse";
+    SOURCE_REPULSE_VAR = "source_attract";
+    SOURCE_ATTRACT_VAR = "source_repulse";
+    REMOVE_SOURCE_VAR = "remove";
+    DIE_VAR = "birth";
+    REPAIR_VAR = "repair";
   }
 
   function showhideSignals(){
@@ -915,8 +939,8 @@
     <input id="simSpeedSubmit" class="uiinput" type="submit" name="test_button" value="Submit" onclick="javascript: setSpeed();">
     <input id="pauseButton" class="uiinput" type="submit" name="pause_button" value="Pause" onclick="javascript: pauseFunc();">
     <input id="resumeButton" class="uiinput" type="submit" name="resume_button" value="Play" onclick="javascript: resumeFunc();">
-    <!-- <input id="fowardButton" class="uiinput" type="submit" name="forward_button" value="Play" onclick="javascript: playForward();">
-    <input id="backwardsButton" class="uiinput" type="submit" name="backwards_button" value="Reverse" onclick="javascript: playBackward();"> -->
+    <input id="fowardButton" class="uiinput" type="submit" name="forward_button" value="Forward" onclick="javascript: playForward();">
+    <input id="backwardsButton" class="uiinput" type="submit" name="backwards_button" value="Backward" onclick="javascript: playBackward();">
     <input id="chemsigButton" class="uiinput" type="submit" name="chemsig_button" value="Show/Hide Signals" onclick="javascript: showhideSignals();">
     <input id="gridButton" class="uiinput" type="submit" name="grid_button" value="Show/Hide Grid" onclick="javascript: showhideGrid();">
   </div>
@@ -954,3 +978,4 @@
   </script>
 </body>
 </html>
+
