@@ -2,6 +2,8 @@
 <html>
 <head>
   <meta charset=utf-8>
+  <meta name="description" content="Visualisation of Oligodendrocyte Precursor Cell behaviour">
+  <meta name="keywords" content="Multiple Sclerosis, Oligodendrocyte, Visualisation">
   <title>OPC Visualisation</title>
   <style>
   <style>
@@ -242,7 +244,6 @@
 
 </head>
 <body>
-
   <div id="page-wrapper">
     <h1>Visualisation of Repair Process of Oligodendrocyte Precursor Cells</h1>
     <p>Please choose from one of the Pre-Compiled Visualisations on the left or, if you have your own, upload it here</p>
@@ -256,17 +257,22 @@
     </div>
     <pre id="fileDisplayArea"></pre>
     <p></p>
-    <p class="info-page">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut vestibulum nibh, suscipit porta augue.
-       Vestibulum ac laoreet ex. Interdum et malesuada fames ac ante ipsum primis in faucibus. Quisque vitae sem
-       leo. Aliquam aliquet convallis orci in interdum. Aliquam condimentum dolor in erat commodo commodo eu
-       molestie risus. Sed non fringilla dui, ac bibendum nulla. Curabitur rhoncus, ipsum scelerisque interdum
-       scelerisque, lacus mauris fringilla arcu, ac suscipit dui elit non arcu.</p>
+    <p class="info-page">There are many neurological processes that aren't fully understood, even those that are can be difficult to conceptualise.
+    As a result visual aids to give a broad and general picture of what we think might be happening in a certain processes. One such process is the
+    behaviour exhibited by Oligodendrocyte Precursor Cells (OPCs) in response to damage to an area of the brain. More specifically, these cells
+    respond to the chemical signals emitted by the damaged area. The primary goal of the OPC is to repair the myelin sheath around axons present in
+    the brain by duplicating and differentiating into full Oligodendrocyte. The myelin sheath is what allows saltatory conduction along an axon
+    (this is what allows signals to quickly move along the axis). A disruption to this conduction (for instance by some demyelinating process)
+    causes a many problems including physical movement issues and psychological and emotional difficulties. One such demyelinating disease is
+    Multiple Sclerosis which is presumed to affect over 100000 people in the UK alone (<a href="https://www.nhs.uk/conditions/multiple-sclerosis/">NHS</a>).
+    As a result understanding why the disease occurs and the natural response of biological cells to these diseases is of great interest.</p>
     <p></p>
-    <p class="info-page">Curabitur in faucibus mi. In efficitur, nulla sed maximus commodo, neque libero placerat diam, nec
-      pulvinar nibh velit non mauris. Praesent quis faucibus nisi. Nulla facilisi. Etiam maximus placerat
-      dolor. Suspendisse hendrerit rhoncus arcu, sit amet pulvinar nisi fringilla eget. Suspendisse dolor
-      enim, varius nec congue ac, hendrerit ut massa. Curabitur eu lacinia tellus. Proin interdum
-      pellentesque pulvinar. Vestibulum condimentum feugiat malesuada.</p>
+    <p class="info-page">This project aims to give a basic insight into how OPCs behave when a lesion is present in the brain. The data for the
+    visualisation is obtained from a stochastic model built using <a href="https://arxiv.org/abs/1610.08171">MELA</a>. The visualisation on this page
+    takes a particular instance of this language (<a href="https://github.com/LudovicaLV/Project_MS">found here</a>)which models static and moving OPCS, mature OPCs(Oligodendrocytes) and lesion areas in the brain.
+    The MELA model can output several meta data files, including a file which describes every action taken at every time step. This meta file is parsed
+    by a python script and interpolated so that more meaningful visual data can be extracted from the meta files. The newly created file is what is
+    played by the javascript contained on this page.</p>
   </div>
 
 
@@ -279,7 +285,8 @@
 
 
   var FORWARD = true;
-
+  var VIS_RUNNING = false;
+  var TRIGGERED = false;
   //init progress bar variables
   var bar_prog = 0;
   var bar_width = 0.4;
@@ -308,6 +315,15 @@
     update_bar();
   }
 
+  function reset_bar(){
+    var elem = document.getElementById("myBar");
+    elem.style.width = 1+'%';
+    elem.innerHTML = parseInt(1) * 1 + '%';
+    bar_prog = 0;
+    bar_width = 0.4;
+    SIM_LENGTH = 10;
+  }
+
   //global variables
   var rem_text = [];
   var POS = 0;
@@ -315,8 +331,9 @@
   var SIMULATION_SPEED = 100;
   var PAUSED = false;
   var RUNNING = false;
+  var STOPPED = false;
   var ANIMATION_ID;
-  var HIDE_SIGNALS = false;
+  var HIDE_SIGNALS = true;
   var HIDE_GRID = true;
   var GRID_CHANGE = false;
   var SIGNAL_CHANGE = false;
@@ -336,7 +353,109 @@
 
   //this is the clock area
   var fileDisplayArea = document.getElementById('fileDisplayArea');
-  var scene = null;
+  var scene = new THREE.Scene();
+  //add camera and set renderer
+  var camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  camera.position.set(0, 120, 30);
+  var renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0xcccdce);
+  document.body.appendChild(renderer.domElement);
+  scene.add(camera);
+
+  //add camera controls (this could be disabled but its pretty cool)
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  //add light (needs optimisation for position)
+  var light = new THREE.PointLight(0xffffff, 1.2, 1000);
+  light.position.set(0,0,0);
+  var light2 = new THREE.PointLight(0xffffff, 1.2, 1000);
+  light2.position.set(0,-80,0);
+  var light3 = new THREE.PointLight(0xffffff, 1, 1000);
+  light3.position.set(0,80,0);
+  var light4 = new THREE.PointLight(0xffffff, 1, 1000);
+  light4.position.set(65,80,0);
+  var light5 = new THREE.PointLight(0xffffff, 1, 1000);
+  light5.position.set(-50,80,-70);
+  var light6 = new THREE.PointLight(0xffffff, 1, 1000);
+  light6.position.set(-50,80,70);
+  var light7 = new THREE.PointLight(0xffffff, 1, 1000);
+  light7.position.set(-80,80,80);
+  //scene.add(light);
+  scene.add(light2);
+  //scene.add(light3);
+  scene.add(light4);
+  scene.add(light5);
+  scene.add(light6);
+  //scene.add(light7);
+
+
+  var id;
+
+  var radius = 1;
+  var segments = 16;
+  var geometrySphere = new THREE.SphereGeometry( radius, segments, 16);
+  var geometryLargeSphere = new THREE.SphereGeometry( radius*2, segments, 16);
+  var geometryBox = new THREE.BoxGeometry( 10, 5, 10);
+  var geometrySquare = new THREE.BoxGeometry(10,1,10);
+  var geometrySmallSquare = new THREE.BoxGeometry(5,2,5);
+  var materialP = new THREE.MeshLambertMaterial({color: 0x3d5982});
+  var materialS = new THREE.MeshLambertMaterial({color: 0x823d3d});
+  var materialM = new THREE.MeshLambertMaterial({color: 0xfff71e});
+  var materialL = new THREE.MeshLambertMaterial({color: 0xff0000});
+
+  materialL.transparent = true;
+  materialL.opacity = 0.6;
+
+
+  var materialAttract = new THREE.MeshLambertMaterial({color: 0x1ec900});
+  var materialRepulse = new THREE.MeshLambertMaterial({color: 0xffee00});
+
+  var clear_colour = new THREE.Color("rgb(255, 255, 255)");
+
+
+  materialAttract.transparent = true;
+  materialRepulse.transparent = true;
+
+  materialAttract.opacity = 0.75;
+  materialRepulse.opacity = 0.75;
+
+  var grid_x = new THREE.GridHelper(160,16, 0x22a000, 0x22a000);
+  //scene.add(grid_x);
+
+
+  function resetSim(){
+    reset_bar();
+    VIS_RUNNING = false;
+    FORWARD = true;
+    //global variables
+    rem_text = [];
+    POS = 0;
+    file_read = false;
+    SIMULATION_SPEED = 100;
+    PAUSED = true;
+    RUNNING = false;
+    STOPPED = false;
+    ANIMATION_ID;
+    HIDE_SIGNALS = true;
+    HIDE_GRID = true;
+    GRID_CHANGE = false;
+    SIGNAL_CHANGE = false;
+
+    //variables to control actions of animation for forwards and backwards tracking
+    BIRTH_VAR = "birth";
+    SHRINK_VAR = "shrink";
+    GROW_VAR = "grow";
+    REPULSE_VAR = "repulse";
+    ATTRACT_VAR = "attract";
+    SOURCE_REPULSE_VAR = "source_repulse";
+    SOURCE_ATTRACT_VAR = "source_attract";
+    REMOVE_SOURCE_VAR = "remove_source";
+    DIE_VAR = "die";
+    REPAIR_VAR = "repair";
+
+
+  }
 
   //create the grid which will store the chemical signals
   function init_signal_grid(){
@@ -394,145 +513,94 @@
     if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
     if ($('#Legend').css('opacity') == 0) $('#Legend').css('opacity', 1);
     if ($('.info-page').css('opacity') == 1) $('.info-page').css('opacity', 0);
+    if ($('.box_container').css('opacity') == 0) $('.box_container').css('opacity', 1);
+
+    document.getElementById('page-wrapper').style.height = '20%';
+  }
+
+  function setupPlaybackUI(){
+    if ($('#UIbuttonsTest').css('opacity') == 0) $('#UIbuttonsTest').css('opacity', 1);
+    if ($('#myBar').css('opacity') == 0) $('#myBar').css('opacity', 1);
+    if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
+    if ($('#Legend').css('opacity') == 0) $('#Legend').css('opacity', 1);
+    if ($('.info-page').css('opacity') == 1) $('.info-page').css('opacity', 0);
+    if ($('.box_container').css('opacity') == 0) $('.box_container').css('opacity', 1);
 
     document.getElementById('page-wrapper').style.height = '20%';
   }
 
   function loadTest(num){
-
-    var url = "https://bockenator.github.io/test.txt";
-
-    if (num == 0){
-      url = "https://bockenator.github.io/test.txt";
-    }
-    else if (num == 1){
-      url = "https://bockenator.github.io/repel.txt";
+    if(VIS_RUNNING){
+      window.alert("Please stop current Visualisation before running a new one.");
     }
     else{
-      url = "https://bockenator.github.io/additional.txt";
-    }
+      var url = "https://bockenator.github.io/test.txt";
 
-    $.get( url, function( data ) {
-      var test_text_load = data
-      var splitRes = data.split('\n');
-      rem_text = splitRes;
-      setupPlaybackUI();
-      file_read = true;
-      sim_loop();
-    });
+      if (num == 0){
+        url = "https://bockenator.github.io/test.txt";
+      }
+      else if (num == 1){
+        url = "https://bockenator.github.io/repel.txt";
+      }
+      else{
+        url = "https://bockenator.github.io/additional.txt";
+      }
+
+      $.get( url, function( data ) {
+        var test_text_load = data
+        var splitRes = data.split('\n');
+        rem_text = splitRes;
+        setupPlaybackUI();
+        file_read = true;
+        sim_loop();
+      });
+    }
   }
   //when file is loaded begin running the animation
   window.onload = function() {
     var fileInput = document.getElementById('fileInput');
 
     fileInput.addEventListener('change', function(e) {
-      var file = fileInput.files[0];
-      var textType = /text.*/;
+      if(VIS_RUNNING){
+        window.alert("Please stop current Visualisation before running a new one.");
+      }
+      else{
+        var file = fileInput.files[0];
+        var textType = /text.*/;
 
-      if (file.type.match(textType)) {
-        var reader = new FileReader();
+        if (file.type.match(textType)) {
+          var reader = new FileReader();
 
-        //when the file is loaded is when we start doing stuff
-        reader.onload = function(e) {
-          //split the input files into lines
-          var splitRes = reader.result.split('\n')
-          rem_text = splitRes;
-          file_read = true;
-          //pop up alert DEBUGGING TOOL
-          //window.alert(text);
-          //fileDisplayArea.innerText = splitRes;
-          scene = null;
-          if (RUNNING){
-            //PAUSED = true;
-            RUNNING = false;
+          //when the file is loaded is when we start doing stuff
+          reader.onload = function(e) {
+            //split the input files into lines
+            var splitRes = reader.result.split('\n')
+            rem_text = splitRes;
+            file_read = true;
+            //pop up alert DEBUGGING TOOL
+            scene = null;
+            if (RUNNING){
+              //PAUSED = true;
+              RUNNING = false;
+            }
+            setupPlaybackUI();
+            sim_loop();
+
           }
-          setupPlaybackUI();
-          sim_loop();
-
+          //read in file
+          reader.readAsText(file)
+        } else {
+          fileDisplayArea.innerText = "File not supported!";
         }
-        //read in file
-        reader.readAsText(file)
-      } else {
-        fileDisplayArea.innerText = "File not supported!";
       }
     });
   }
 
+
+
   function sim_loop(){
     RUNNING = true;
-    //create scene
-    scene = new THREE.Scene();
-
-    //add camera and set renderer
-    var camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    camera.position.set(0, 120, 30);
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0xcccdce);
-    document.body.appendChild(renderer.domElement);
-    scene.add(camera);
-
-    //add camera controls (this could be disabled but its pretty cool)
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    //add light (needs optimisation for position)
-    var light = new THREE.PointLight(0xffffff, 1.2, 1000);
-    light.position.set(0,0,0);
-    var light2 = new THREE.PointLight(0xffffff, 1.2, 1000);
-    light2.position.set(0,-80,0);
-    var light3 = new THREE.PointLight(0xffffff, 1, 1000);
-    light3.position.set(0,80,0);
-    var light4 = new THREE.PointLight(0xffffff, 1, 1000);
-    light4.position.set(65,80,0);
-    var light5 = new THREE.PointLight(0xffffff, 1, 1000);
-    light5.position.set(-50,80,-70);
-    var light6 = new THREE.PointLight(0xffffff, 1, 1000);
-    light6.position.set(-50,80,70);
-    var light7 = new THREE.PointLight(0xffffff, 1, 1000);
-    light7.position.set(-80,80,80);
-    //scene.add(light);
-    scene.add(light2);
-    //scene.add(light3);
-    scene.add(light4);
-    scene.add(light5);
-    scene.add(light6);
-    //scene.add(light7);
-
-
-    var id;
-
-    var radius = 1;
-    var segments = 16;
-    var geometrySphere = new THREE.SphereGeometry( radius, segments, 16);
-    var geometryLargeSphere = new THREE.SphereGeometry( radius*2, segments, 16);
-    var geometryBox = new THREE.BoxGeometry( 10, 5, 10);
-    var geometrySquare = new THREE.BoxGeometry(10,1,10);
-    var geometrySmallSquare = new THREE.BoxGeometry(5,2,5);
-    var materialP = new THREE.MeshLambertMaterial({color: 0x3d5982});
-    var materialS = new THREE.MeshLambertMaterial({color: 0x823d3d});
-    var materialM = new THREE.MeshLambertMaterial({color: 0xfff71e});
-    var materialL = new THREE.MeshLambertMaterial({color: 0xff0000});
-
-    materialL.transparent = true;
-    materialL.opacity = 0.6;
-
-
-    var materialAttract = new THREE.MeshLambertMaterial({color: 0x1ec900});
-    var materialRepulse = new THREE.MeshLambertMaterial({color: 0xffee00});
-
-    var clear_colour = new THREE.Color("rgb(255, 255, 255)");
-
-
-    materialAttract.transparent = true;
-    materialRepulse.transparent = true;
-
-    materialAttract.opacity = 0.75;
-    materialRepulse.opacity = 0.75;
-
-    var grid_x = new THREE.GridHelper(160,16, 0x22a000, 0x22a000);
-    //scene.add(grid_x);
-
-
+    VIS_RUNNING = true;
     var count = POS;
     var no_spheres = 0;
     var no_boxes = 0;
@@ -551,7 +619,6 @@
     var activation_signal_list = {};
 
     animate();
-
     //create the array of animated grid squares
     function create_singals(){
       var signals = new Array(15);
@@ -619,16 +686,27 @@
     }
 
     function animate() {
-      if (scene == null){
-        cancelAnimationFrame(ANIMATION_ID);
-        return;
+      if (STOPPED){
+        if (scene.children.length == 0){
+          cancelAnimationFrame(ANIMATION_ID);
+          count = 0;
+          resetSim();
+          PAUSED = false;
+          TRIGGERED = true;
+          rem_text = [];
+          STOPPED = false;
+          VIS_RUNNING = false;
+          return;
+        }
+        else{
+          while (scene.children.length > 0){
+            scene.remove(scene.children[0]);
+            //window.alert("KILLED A THINGS");
+          }
+          SIMULATION_SPEED = 1;
+        }
       }
-      // if(PAUSED){
-      //   cancelAnimationFrame(ANIMATION_ID);
-      //   POS = count;
-      //   return;
-      // }
-      //currently no better solution than to just spin while waiting
+
       if (PAUSED){
         setTimeout(pause_animation, 100);
       }
@@ -772,13 +850,16 @@
             var unparsed_pos = entry[1].split(',');
             var x_pos = parseFloat(unparsed_pos[0]);
             var y_pos = parseFloat(unparsed_pos[1]);
-
+            var backwards_correction = 1;
+            if (!(FORWARD)){
+              backwards_correction = -1;
+            }
             //to remove a source signal we update with a canceling signal
             if (signal_list[cell_id] == "attract"){
-              source_sig_val_list = update_grid(source_sig_val_list, x_pos, y_pos, -1);
+              source_sig_val_list = update_grid(source_sig_val_list, x_pos, y_pos, -1*backwards_correction);
             }
             else{
-              source_sig_val_list = update_grid(source_sig_val_list, x_pos, y_pos, 1);
+              source_sig_val_list = update_grid(source_sig_val_list, x_pos, y_pos, 1*backwards_correction);
             }
 
             update_signals();
@@ -866,6 +947,7 @@
 
     }
 
+
   }
 
   function pauseFunc(){
@@ -929,6 +1011,32 @@
     SIMULATION_SPEED = parseInt(document.getElementById('simSpeed').value);
   }
 
+  function stopAndDestroy(){
+
+    STOPPED = true;
+
+    // //global variables
+    // rem_text = [];
+    // POS = 0;
+    // file_read = false;
+    // SIMULATION_SPEED = 100;
+    // PAUSED = false;
+    // RUNNING = false;
+    // ANIMATION_ID;
+    // HIDE_SIGNALS = false;
+    // HIDE_GRID = true;
+    // GRID_CHANGE = false;
+    // SIGNAL_CHANGE = false;
+    //
+    // //variables to control actions of animation for forwards and backwards tracking
+    // playForward();
+    //
+    //
+    // //this is the clock area
+    // fileDisplayArea = document.getElementById('fileDisplayArea');
+    // scene = null;
+  }
+
   </script>
   <div id="UIbuttonsTest">
     <p>Playback Controls</p>
@@ -938,6 +1046,7 @@
     <input id="simSpeed" class="uiinput" type="text" name="test_text" value="100">
     <input id="simSpeedSubmit" class="uiinput" type="submit" name="test_button" value="Submit" onclick="javascript: setSpeed();">
     <input id="pauseButton" class="uiinput" type="submit" name="pause_button" value="Pause" onclick="javascript: pauseFunc();">
+    <input id="stopButton" class="uiinput" type="submit" name="stop_button" value="Stop" onclick="javascript: stopAndDestroy();">
     <input id="resumeButton" class="uiinput" type="submit" name="resume_button" value="Play" onclick="javascript: resumeFunc();">
     <input id="fowardButton" class="uiinput" type="submit" name="forward_button" value="Forward" onclick="javascript: playForward();">
     <input id="backwardsButton" class="uiinput" type="submit" name="backwards_button" value="Backward" onclick="javascript: playBackward();">
@@ -955,7 +1064,7 @@
       </div>
     </div>
   </div>
-  <div style="display: flex; justify-content: flex-end;">
+  <div style ="display: flex; justify-content: flex-end;">
     <div id="Legend">
       <p>Blue Ball = Static OPC</p>
       <p>Red Ball = Moving OPC</p>
