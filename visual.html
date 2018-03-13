@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8>
+  <meta name="description" content="Visualisation of Oligodendrocyte Precursor Cell behaviour">
+  <meta name="keywords" content="Multiple Sclerosis, Oligodendrocyte, Visualisation">
+  <title>OPC Visualisation</title>
+  <style>
+  <style>
+  * { margin: 0; padding: 0;}
+			body {
+				font-family: Trebuchet;
+				background-color: #F0EBEA;
+				color: #F0EBEA;
+				overflow: hidden;
+        margin: 0;
+			}
+      ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #606060;
+        position: fixed; /* Set the navbar to fixed position */
+        top: 0; /* Position the navbar at the top of the page */
+        font-size: 25px;
+        width: 100%; /* Full width */
+      }
+
+      li {
+        float: left;
+      }
+
+      li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+
+  /* Change the link color to #111 (black) on hover */
+      li a:hover {
+        background-color: #111;
+      }
+
+      .active {
+        background-color: #4CAF50;
+      }
+      #buttons {
+        font-family: Trebuchet;
+				position: absolute;
+				padding: 10px;
+				width: 100%;
+        color: #00572A;
+				text-align: left;
+			}
+
+      #TESTTHING{
+        font-family: Trebuchet;
+        position: fixed;
+        display: inline-block;
+        /* top: 10%; */
+				padding: 10px;
+        border-style: solid;
+        border-width: 2px;
+        margin: 100px 600px;
+				width: 30%;
+        color: #00572A;
+				text-align: center;
+        opacity: 1;
+        /* -webkit-transition: all 1s ease-in-out;
+        -moz-transition: all 1s ease-in-out;
+        -ms-transition: all 1s ease-in-out;
+        -o-transition: all 1s ease-in-out;
+        transition: all 1s ease-in-out; */
+      }
+      #legend_wrapper{
+         display: flex;
+         justify-content: flex-end;
+         opacity: 0;
+         -webkit-transition: all 2s ease-in-out;
+         -moz-transition: all 2s ease-in-out;
+         -ms-transition: all 2s ease-in-out;
+         -o-transition: all 2s ease-in-out;
+         transition: all 2s ease-in-out;
+      }
+      #Legend{
+        opacity: 0;
+        font-family: Trebuchet;
+        position: fixed;
+        display: block;
+        border-style: solid;
+        border-width: 2px;
+        top: 25%;
+				padding: 10px 100px 10px 10px;
+				width: 15%;
+        color: #00572A;
+        background-color: #F0EBEA;
+        text-align: right;
+        animation: fadein 2s ease-in-out;
+        -moz-animation: fadein 2s ease-in-out; /* Firefox */
+        -webkit-animation: fadein 2s ease-in-out; /* Safari and Chrome */
+        -o-animation: fadein 2s ease-in-out; /* Opera */
+      }
+      #UIbuttons{
+        opacity: 0;
+        font-family: Trebuchet;
+        position: absolute;
+        display: block;
+        top: 25%;
+				padding: 10px;
+				width: 100%;
+        color: #00572A;
+				text-align: left;
+        animation: fadein 2s ease-in-out;
+        -moz-animation: fadein 2s ease-in-out; /* Firefox */
+        -webkit-animation: fadein 2s ease-in-out; /* Safari and Chrome */
+        -o-animation: fadein 2s ease-in-out; /* Opera */
+      }
+
+      #UIbuttonsTest{
+        font-family: Trebuchet;
+        position: absolute;
+        display: inline-block;
+        width: 15%;
+        top: 25%;
+				padding: 20px 0px 20px 20px;
+        margin: 20px;
+        border-style: solid;
+        border-width: 2px;
+        color: #00572A;
+        background-color: #F0EBEA;
+				text-align: left;
+        opacity: 0;
+        -webkit-transition: all 2s ease-in-out;
+        -moz-transition: all 2s ease-in-out;
+        -ms-transition: all 2s ease-in-out;
+        -o-transition: all 2s ease-in-out;
+        transition: all 2s ease-in-out;
+      }
+
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-moz-keyframes fadein { /* Firefox */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-webkit-keyframes fadein { /* Safari and Chrome */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-o-keyframes fadein { /* Opera */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+      .uiinput{
+        display: block;
+      }
+      #progress-bar-wrapper{
+        position: fixed;
+        bottom: 0;
+        width: 20%;
+        background-color: #F0EBEA;
+        margin: 3% 35%;
+        padding: 20px;
+        border-style: solid;
+        border-width: 2px;
+        color: #00572A;
+      }
+      #myProgress {
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        background-color: black;
+        text-align: center;
+        opacity: 0;
+        -webkit-transition: all 2s ease-in-out;
+        -moz-transition: all 2s ease-in-out;
+        -ms-transition: all 2s ease-in-out;
+        -o-transition: all 2s ease-in-out;
+        transition: all 2s ease-in-out;
+      }
+      #myBar {
+        position: relative;
+        margin-right: auto;
+        width: 1%;
+        background-color: green;
+        color: white;
+        text-align: center;
+        opacity: 0;
+      }
+
+      .dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+      .slidecontainer {
+    width: 10%; /* Width of the outside container */
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 170px;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+.green-button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    width: 100%;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
+.green-button:hover {
+    background-color: #3e8e41;
+}
+
+.ui-button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  width: 62%;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+}
+.ui-button:hover {
+    background-color: #3e8e41;
+}
+  canvas {
+     width: 100%;
+     height: 100%;
+     background-color: #F0EBEA;
+     color: #F0EBEA;
+   }
+  </style>
+
+</head>
+<body>
+  <ul>
+    <li><a href="https://bockenator.github.io/index.html">Home</a></li>
+    <li><a class="active" href="https://bockenator.github.io/visual.html">Visualisation</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <div id="TESTTHING">
+    <p>Please choose from one of the Pre-Compiled Visualisations or, if you have your own, upload it here</p>
+    <div class="dropdown">
+      <button class="dropbtn">Pre-Compiled Files</button>
+      <div class="dropdown-content">
+        <button id="loadTestButton0" class="green-button" onclick="javascript: loadTest(0);">Test</button>
+        <button id="loadTestButton1" class="green-button" onclick="javascript: loadTest(1);">Repellant</button>
+        <button id="loadTestButton2" class="green-button" onclick="javascript: loadTest(2);">Additional</button>
+      </div>
+    </div>
+
+      <div style="margin: 20px">
+        Select a trace file:
+        <input type="file" id="fileInput">
+      </div>
+      <p></p>
+    </div>
+
+    <div id="progress-bar-wrapper">
+      <div id="myProgress">
+        <div id="myBar"></div>
+      </div>
+      <pre id="fileDisplayArea" style="text-align: center;"></pre>
+    </div>
+  </div>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="js/three.js"></script>
+  <script src="js/three.js-master/examples/js/controls/OrbitControls.js"></script>
+  <script src="js/three.js-master/src/lights/PointLight.js"></script>
+  <script src="OPCTemp.js"></script>
+  <script type="text/javascript">
+
+
+  var FORWARD = true;
+  var VIS_RUNNING = false;
+  var TRIGGERED = false;
+  //init progress bar variables
+  var bar_prog = 0;
+  var bar_width = 0.4;
+  var SIM_LENGTH = 10;
+
+
+  //update bar by percentage based on the total time of Visualisation
+  function update_bar(){
+    var elem = document.getElementById("myBar");
+    if (bar_prog < 100){
+      if(FORWARD){
+        bar_prog+=bar_width;
+      }
+      else{
+        bar_prog-=bar_width;
+      }
+      elem.style.width = bar_prog+'%';
+      elem.innerHTML = parseInt(bar_prog) * 1 + '%';
+    }
+  }
+
+  //init bar
+  function init_bar(){
+    bar_width = (1/(SIM_LENGTH*10))*100;
+    //bar_width = 2;
+    update_bar();
+  }
+
+  function reset_bar(){
+    var elem = document.getElementById("myBar");
+    elem.style.width = 1+'%';
+    elem.innerHTML = parseInt(1) * 1 + '%';
+    bar_prog = 0;
+    bar_width = 0.4;
+    SIM_LENGTH = 10;
+  }
+
+  //global variables
+  var rem_text = [];
+  var POS = 0;
+  var file_read = false;
+  var SIMULATION_SPEED = 100;
+  var PAUSED = false;
+  var RUNNING = false;
+  var STOPPED = false;
+  var ANIMATION_ID;
+  var HIDE_SIGNALS = true;
+  var HIDE_GRID = true;
+  var GRID_CHANGE = false;
+  var SIGNAL_CHANGE = false;
+
+  //variables to control actions of animation for forwards and backwards tracking
+  var BIRTH_VAR = "birth";
+  var SHRINK_VAR = "shrink";
+  var GROW_VAR = "grow";
+  var REPULSE_VAR = "repulse";
+  var ATTRACT_VAR = "attract";
+  var SOURCE_REPULSE_VAR = "source_repulse";
+  var SOURCE_ATTRACT_VAR = "source_attract";
+  var REMOVE_SOURCE_VAR = "remove_source";
+  var DIE_VAR = "die";
+  var REPAIR_VAR = "repair";
+
+
+
+  //this is the clock area
+  var fileDisplayArea = document.getElementById('fileDisplayArea');
+  var scene = new THREE.Scene();
+  //add camera and set renderer
+  var camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  camera.position.set(0, 120, 30);
+  var renderer = new THREE.WebGLRenderer( { alpha: true } );
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0xF0EBEA, 1);
+  document.body.appendChild(renderer.domElement);
+  scene.add(camera);
+
+  //add camera controls (this could be disabled but its pretty cool)
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  //add light (needs optimisation for position)
+  var light = new THREE.PointLight(0xffffff, 1.2, 1000);
+  light.position.set(0,0,0);
+  var light2 = new THREE.PointLight(0xffffff, 1.2, 1000);
+  light2.position.set(0,-80,0);
+  var light3 = new THREE.PointLight(0xffffff, 1, 1000);
+  light3.position.set(0,80,0);
+  var light4 = new THREE.PointLight(0xffffff, 1, 1000);
+  light4.position.set(65,80,0);
+  var light5 = new THREE.PointLight(0xffffff, 1, 1000);
+  light5.position.set(-50,80,-70);
+  var light6 = new THREE.PointLight(0xffffff, 1, 1000);
+  light6.position.set(-50,80,70);
+  var light7 = new THREE.PointLight(0xffffff, 1, 1000);
+  light7.position.set(-80,80,80);
+  //scene.add(light);
+  scene.add(light2);
+  //scene.add(light3);
+  scene.add(light4);
+  scene.add(light5);
+  scene.add(light6);
+  //scene.add(light7);
+
+
+  var id;
+
+  var radius = 1;
+  var segments = 16;
+  var geometrySphere = new THREE.SphereGeometry( radius, segments, 16);
+  var geometryLargeSphere = new THREE.SphereGeometry( radius*2, segments, 16);
+  var geometryBox = new THREE.BoxGeometry( 10, 10, 10);
+  var geometrySquare = new THREE.BoxGeometry(10,1,10);
+  var geometrySmallSquare = new THREE.BoxGeometry(5,2,5);
+  // var materialP = new THREE.MeshLambertMaterial({color: 0x3d5982});
+  // var materialS = new THREE.MeshLambertMaterial({color: 0x3d5982});
+  var materialP = new THREE.MeshLambertMaterial({color: 0x823d3d});
+  var materialS = new THREE.MeshLambertMaterial({color: 0x823d3d});
+  var materialM = new THREE.MeshLambertMaterial({color: 0x471f77});
+  var materialL = new THREE.MeshLambertMaterial({color: 0xad0000});
+
+  materialL.transparent = true;
+  materialL.opacity = 0.7;
+
+
+  var materialAttract = new THREE.MeshLambertMaterial({color: 0x1ec900});
+  var materialRepulse = new THREE.MeshLambertMaterial({color: 0xffee00});
+
+  var clear_colour = new THREE.Color("rgb(255, 255, 255)");
+
+
+  materialAttract.transparent = true;
+  materialRepulse.transparent = true;
+
+  materialAttract.opacity = 0.75;
+  materialRepulse.opacity = 0.75;
+
+  var grid_x = new THREE.GridHelper(160,16, 0x22a000, 0x22a000);
+  //scene.add(grid_x);
+
+
+  function resetSim(){
+    reset_bar();
+    VIS_RUNNING = false;
+    FORWARD = true;
+    //global variables
+    rem_text = [];
+    POS = 0;
+    file_read = false;
+    SIMULATION_SPEED = 100;
+    PAUSED = true;
+    RUNNING = false;
+    STOPPED = false;
+    ANIMATION_ID;
+    HIDE_SIGNALS = true;
+    HIDE_GRID = true;
+    GRID_CHANGE = false;
+    SIGNAL_CHANGE = false;
+
+    //variables to control actions of animation for forwards and backwards tracking
+    BIRTH_VAR = "birth";
+    SHRINK_VAR = "shrink";
+    GROW_VAR = "grow";
+    REPULSE_VAR = "repulse";
+    ATTRACT_VAR = "attract";
+    SOURCE_REPULSE_VAR = "source_repulse";
+    SOURCE_ATTRACT_VAR = "source_attract";
+    REMOVE_SOURCE_VAR = "remove_source";
+    DIE_VAR = "die";
+    REPAIR_VAR = "repair";
+
+
+  }
+
+  //create the grid which will store the chemical signals
+  function init_signal_grid(){
+    var xs = new Array(15);
+    for (i = 0; i<15; i++){
+      xs[i] = new Array(15).fill(0);
+    }
+    return xs;
+  }
+
+  //update the grid with the chemical signals as they are recieved
+  function update_grid_old(grid, source_x, source_y, sig_type){
+    var x_start = source_x-5;
+    var x_end = source_x+6;
+
+    var y_start = source_y-5;
+    var y_end = source_y+6;
+
+    var y_mod = 0;
+    var x_mod = 0;
+
+    var x = x_start;
+    var y = source_y;
+
+    for(i = x_start; i < x_end; i++){
+      y_mod = 5 - Math.abs((source_y - y));
+      x_mod = 5 - Math.abs((source_x - x));
+
+      grid[x][y] += sig_type * (x_mod + y_mod);
+      x+=1;
+    }
+
+    x = source_x;
+    y = y_start;
+
+    for(i = y_start; i < y_end; i++){
+      y_mod = 5 - Math.abs((source_y - y));
+      x_mod = 5 - Math.abs((source_x - x));
+      if (x!=y){
+        grid[x][y] += sig_type * (x_mod + y_mod);
+      }
+      y+=1;
+    }
+
+    return grid;
+  }
+
+
+  //NOTE: x and y have been flipped because thats just the way it is....
+  function update_grid(grid, sig_source_y, sig_source_x, sig_type){
+    var x_start = sig_source_x+1;
+    var x_end = sig_source_x+1;
+
+    var y = sig_source_y - 6;
+    var y_mod = 0;
+    var x_mod = 0;
+
+    //get all grid points above source
+    for(i = 0; i <= 6; i++){
+      y_mod = 5 - Math.abs((sig_source_y - y));
+
+      for(j = x_start; j < x_end-1; j++){
+        x_mod = 5 - Math.abs((sig_source_x - j));
+        var prev = grid[y][j]
+        grid[y][j] += sig_type * (x_mod + y_mod);
+        if (grid[y][j] < 0){
+          console.info("NEGATIVE VALUE ABOVE prev: "+prev+" current: "+grid[y][j]);
+          console.info(sig_type)
+          console.info(x_mod+" "+y_mod);
+        }
+      }
+      x_start = x_start - 1;
+      x_end += 1;
+      y+=1;
+    }
+
+    y = sig_source_y + 1;
+    x_start = sig_source_x - 4;
+    x_end = sig_source_x + 6;
+    //get all grid points below source
+    for(i = 0; i < 5; i++){
+      y_mod = 5 - Math.abs((sig_source_y - y));
+      for(j = x_start; j < x_end-1; j++){
+        x_mod = 5 - Math.abs((sig_source_x - j));
+        var prev = grid[y][j]
+        grid[y][j] += sig_type * (x_mod + y_mod);
+        if (grid[y][j] < 0){
+          console.info("NEGATIVE VALUE BELOW prev: "+prev+" current: "+grid[y][j]);
+          console.info(sig_type)
+          console.info(x_mod+" "+y_mod);
+          DEBUG_FLAG = true;
+        }
+      }
+      x_start += 1;
+      x_end = x_end - 1;
+      y+= 1;
+    }
+    return grid;
+  }
+
+
+  function setupInfoUI(){
+    if ($('#UIbuttonsTest').css('opacity') == 1) $('#UIbuttonsTest').css('opacity', 0);
+    if ($('#myBar').css('opacity') == 1) $('#myBar').css('opacity', 0);
+    if ($('#TESTTHING').css('opacity') == 0) $('#TESTTHING').css('opacity', 1);
+    if ($('#myProgress').css('opacity') == 1) $('#myProgress').css('opacity', 0);
+    if ($('#Legend').css('opacity') == 1) $('#Legend').css('opacity', 0);
+    if ($('#legend_wrapper').css('opacity') == 1) $('#legend_wrapper').css('opacity', 0);
+    if ($('.box_container').css('opacity') == 1) $('.box_container').css('opacity', 0);
+    //document.getElementById('info-paragraph').style.height = '0';
+    // $('.info-paragraph').css('height', '100%');
+    $('#TESTTHING').css('top', "0px");
+    $('#TESTTHING').css('width', '30%');
+    $('.green-button').attr("disabled", false);
+  }
+
+  function setupPlaybackUI(){
+    if ($('#UIbuttonsTest').css('opacity') == 0) $('#UIbuttonsTest').css('opacity', 1);
+    if ($('#myBar').css('opacity') == 0) $('#myBar').css('opacity', 1);
+    if ($('#TESTTHING').css('opacity') == 1) $('#TESTTHING').css('opacity', 0);
+    if ($('#myProgress').css('opacity') == 0) $('#myProgress').css('opacity', 1);
+    if ($('#Legend').css('opacity') == 0) $('#Legend').css('opacity', 1);
+    if ($('#legend_wrapper').css('opacity') == 0) $('#legend_wrapper').css('opacity', 1);
+    if ($('.box_container').css('opacity') == 0) $('.box_container').css('opacity', 1);
+
+    //document.getElementById('info-paragraph').style.height = '0';
+    $('#TESTTHING').css('top', "100px");
+    $('#TESTTHING').css('width', 0);
+    $('.green-button').attr("disabled", true);
+  }
+
+  function loadTest(num){
+    if(VIS_RUNNING){
+      window.alert("Please stop current Visualisation before running a new one.");
+    }
+    else{
+      VIS_RUNNING = true;
+      var url = "https://bockenator.github.io/test.txt";
+
+      if (num == 0){
+        url = "https://bockenator.github.io/test.txt";
+      }
+      else if (num == 1){
+        url = "https://bockenator.github.io/repel.txt";
+      }
+      else{
+        url = "https://bockenator.github.io/additional.txt";
+      }
+
+      $.get( url, function( data ) {
+        var test_text_load = data
+        var splitRes = data.split('\n');
+        rem_text = splitRes;
+        setupPlaybackUI();
+        file_read = true;
+        sim_loop();
+      });
+    }
+  }
+  //when file is loaded begin running the animation
+  window.onload = function() {
+    var fileInput = document.getElementById('fileInput');
+
+    fileInput.addEventListener('change', function(e) {
+      if(VIS_RUNNING){
+        window.alert("Please stop current Visualisation before running a new one.");
+      }
+      else{
+        VIS_RUNNING = true;
+        var file = fileInput.files[0];
+        var textType = /text.*/;
+
+        if (file.type.match(textType)) {
+          var reader = new FileReader();
+
+          //when the file is loaded is when we start doing stuff
+          reader.onload = function(e) {
+            //split the input files into lines
+            var splitRes = reader.result.split('\n')
+            rem_text = splitRes;
+            file_read = true;
+            //pop up alert DEBUGGING TOOL
+            if (RUNNING){
+              //PAUSED = true;
+              RUNNING = false;
+            }
+            setupPlaybackUI();
+            sim_loop();
+
+          }
+          //read in file
+          reader.readAsText(file)
+        } else {
+          fileDisplayArea.innerText = "File not supported!";
+        }
+      }
+    });
+  }
+
+
+
+  function sim_loop(){
+    RUNNING = true;
+    VIS_RUNNING = true;
+
+    scene.add(light2);
+    scene.add(light4);
+    scene.add(light5);
+    scene.add(light6);
+
+    var count = POS;
+    var no_spheres = 0;
+    var no_boxes = 0;
+    var loop_length = rem_text.length;
+
+    //list of all spheres
+    var sphere_list = {};
+    //list of all boxes
+    var box_list = {};
+    //2d array of source signal grids
+    var attract_sig_val_list = init_signal_grid();
+    var repel_sig_val_list = init_signal_grid();
+    var source_sig_list = create_singals();
+    //dictionary of activation signals
+    var signal_list = {};
+
+    var activation_signal_list = {};
+
+    animate();
+    //create the array of animated grid squares
+    function create_singals(){
+      var signals = new Array(15);
+      for (i = 0; i < signals.length; i++){
+        var ys = new Array(15);
+        for (j = 0; j < ys.length; j++){
+          var matr = new THREE.MeshLambertMaterial({color: clear_colour});
+          matr.transparent = true;
+          matr.opacity = 0;
+          ys[j] = new THREE.Mesh(geometrySquare, matr);
+          ys[j].position.x = (i * 10) - 75;
+          ys[j].position.z = (j * 10) - 75;
+          scene.add(ys[j]);
+        }
+        signals[i] = ys;
+      }
+      return signals;
+    }
+
+    //gets the correct cell colour based on the signals present
+    function get_cell_colour(green_val, red_val, val){
+
+      var red = 0;
+      var green = 0;
+
+      if ((red_val != 0) || (green_val != 0)){
+        red = red_val/parseFloat(red_val+green_val) * 255;
+        green = green_val/parseFloat(red_val+green_val) * 255;
+      }
+      // if (red > green){
+      //   red = red * Math.abs(red - green);
+      // }
+      // else{
+      //   green = green * Math.abs(red - green);
+      // }
+
+      // var ratio_calc = true;
+      // if(green_val == 0){
+      //   green = 0;
+      //   ratio_calc = false;
+      // }
+      // if(red_val == 0){
+      //   red = 0;
+      //   ratio_calc = false;
+      // }
+      // // if(ratio_calc){
+      // //   red = (1/parseFloat(val)) * 10;
+      // //   green = parseFloat(val) * 10;
+      // // }
+      var string = "rgb("+String(parseInt(red))+", " +String(parseInt(green))+", 0)";
+      if ((red < 50)&&(green < 50)){
+        console.info(red_val+" "+green_val+" "+string);
+      }
+      return new THREE.Color(string);
+    }
+
+    function update_signals(){
+      for (i = 0; i < 15; i++){
+        for (j = 0; j < 15; j++){
+          var sig_ratio = (attract_sig_val_list[i][j]/parseFloat(repel_sig_val_list[i][j]));
+          source_sig_list[i][j].material.color = (get_cell_colour(attract_sig_val_list[i][j], repel_sig_val_list[i][j], sig_ratio));
+          if((attract_sig_val_list[i][j] != 0) || (repel_sig_val_list[i][j] != 0)){
+            source_sig_list[i][j].material.opacity = 0.40;
+          }
+          else{
+            source_sig_list[i][j].material.opacity = 0;
+          }
+        }
+      }
+      if (HIDE_SIGNALS){
+        for (i = 0; i < 15; i++){
+          for (j = 0; j < 15; j++){
+            source_sig_list[i][j].material.opacity = 0;
+          }
+        }
+      }
+    }
+
+    //spin with 1 second delay
+    function pause_animation(){
+      if (PAUSED){
+        setTimeout(pause_animation, 100);
+      }
+      else{
+        animate();
+      }
+    }
+
+    function animate() {
+      if (STOPPED){
+        if (scene.children.length == 0){
+          cancelAnimationFrame(ANIMATION_ID);
+          count = 0;
+          resetSim();
+          PAUSED = false;
+          TRIGGERED = true;
+          rem_text = [];
+          STOPPED = false;
+          VIS_RUNNING = false;
+          setupInfoUI();
+          return;
+        }
+        else{
+          while (scene.children.length > 0){
+            scene.remove(scene.children[0]);
+            //window.alert("KILLED A THINGS");
+          }
+          SIMULATION_SPEED = 1;
+        }
+      }
+
+      if (PAUSED){
+        setTimeout(pause_animation, 100);
+      }
+      else{
+        ANIMATION_ID = requestAnimationFrame(animate);
+      }
+      document.getElementById('simSpeedSubmit').onclick = function() {
+        SIMULATION_SPEED = parseInt(document.getElementById('simSpeed').value);
+      };
+
+      if (GRID_CHANGE){
+        GRID_CHANGE = false;
+        if (HIDE_GRID){
+          scene.remove(grid_x);
+        }
+        else{
+          scene.add(grid_x);
+        }
+      }
+
+      if (SIGNAL_CHANGE){
+        SIGNAL_CHANGE = false;
+        update_signals();
+      }
+
+
+      for (var j = 1; j<= SIMULATION_SPEED; j++) {
+        if ((count < (loop_length)) && ((count >= 0) || FORWARD)){
+          //count = 0;
+
+          //var command = rem_text[count].match(/^(\S+)\s(.*)/).slice(1);
+          var entry = rem_text[count].split(' ');
+          var command = entry[0];
+
+          if (command == "LENGTH"){
+            SIM_LENGTH = entry[1];
+            init_bar();
+          }
+
+          else if (command == "time"){
+            fileDisplayArea.innerText = parseInt(entry[1]);
+            update_bar();
+          }
+
+          else if (command == "finished_setup"){
+            PAUSED = true;
+          }
+
+          else if (command == BIRTH_VAR){
+            var cell_type = entry[1];
+            var cell_id = entry[2];
+            var unparsed_pos = entry[3].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+
+            if (cell_type == 'P'){
+              var z_pos = parseFloat(unparsed_pos[2]);
+              //sphere_list.push(new THREE.Mesh( geometrySphere, materialP ));
+              sphere_list[cell_id] = new THREE.Mesh( geometrySphere, materialP );
+              scene.add(sphere_list[cell_id]);
+              sphere_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              sphere_list[cell_id].position.z = y_pos;
+              sphere_list[cell_id].position.y = z_pos;
+              no_spheres = no_spheres + 1;
+            }
+            else if (cell_type == 'S') {
+              var z_pos = parseFloat(unparsed_pos[2]);
+              //sphere_list.push(new THREE.Mesh( geometrySphere, materialP ));
+              sphere_list[cell_id] = new THREE.Mesh( geometrySphere, materialS );
+              scene.add(sphere_list[cell_id]);
+              sphere_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              sphere_list[cell_id].position.z = y_pos;
+              sphere_list[cell_id].position.y = z_pos;
+              no_spheres = no_spheres + 1;
+            }
+            else if (cell_type == 'M'){
+              var z_pos = parseFloat(unparsed_pos[2]);
+              sphere_list[cell_id] = new THREE.Mesh( geometryLargeSphere, materialM );
+              scene.add(sphere_list[cell_id]);
+              sphere_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              sphere_list[cell_id].position.z = y_pos;
+              sphere_list[cell_id].position.y = z_pos;
+              no_spheres = no_spheres + 1;
+            }
+            else if (cell_type == 'L') {
+              box_list[cell_id] = new THREE.Mesh( geometryBox, materialL );
+              scene.add(box_list[cell_id]);
+              box_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              box_list[cell_id].position.z = y_pos;
+              no_boxes = no_boxes + 1;
+            }
+            // if (!(cell_id in sphere_list)){
+            //   window.alert("DIDNT ADD NEW CELL");
+            // }
+          }
+          //ALREADY BASED ON SPHERE_LIST BEING A DICTIONARY
+          else if(command == "move"){
+            var cell_id = entry[1];
+            var unparsed_pos = entry[2].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+            var z_pos = parseFloat(unparsed_pos[2]);
+            if (!(cell_id in sphere_list)){
+              window.alert("MOVE NOT VALID");
+            }
+            sphere_list[cell_id].position.x = x_pos;
+            //Y=Z to preserve 2D-ness
+            sphere_list[cell_id].position.z = y_pos;
+            sphere_list[cell_id].position.y = z_pos;
+          }
+          //NEED TO DEAL WITH OBJECTS BEING REMOVED FROM START OF LIST
+          else if(command == DIE_VAR){
+            var cell_id=entry[2];
+            //scene.remove(sphere_list[sphere]);
+            //sphere_list.splice(sphere, 1);
+            scene.remove(sphere_list[cell_id]);
+            delete sphere_list[cell_id];
+            //window.alert("KILLED AN OPC: "+cell_id);
+
+          }
+          else if(command == REPAIR_VAR){
+            if (FORWARD){
+              var lesion_id = entry[1];
+              scene.remove(box_list[lesion_id]);
+              delete box_list[lesion_id];
+            }
+            else{
+              var cell_id = entry[1];
+              var unparsed_pos = entry[2].split(',');
+              var x_pos = parseFloat(unparsed_pos[0]);
+              var y_pos = parseFloat(unparsed_pos[1]);
+              box_list[cell_id] = new THREE.Mesh( geometryBox, materialL );
+              scene.add(box_list[cell_id]);
+              box_list[cell_id].position.x = x_pos;
+              //Y=Z to preserve 2D-ness
+              box_list[cell_id].position.z = y_pos;
+              no_boxes = no_boxes + 1;
+            }
+          }
+
+          else if (command == REMOVE_SOURCE_VAR){
+            var cell_id = entry[1];
+            var unparsed_pos = entry[1].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+            var ex_type = entry[2];
+            if (!(FORWARD)){
+              if (ex_type == "attract"){
+                attract_sig_val_list = update_grid(attract_sig_val_list, x_pos, y_pos, 1);
+              }
+              else if(ex_type =="repulse"){
+                repel_sig_val_list = update_grid(repel_sig_val_list, x_pos, y_pos, 1);
+              }
+              signal_list[cell_id] = ex_type;
+            }
+            else{
+              //to remove a source signal we update with a canceling signal
+              if (ex_type == "attract"){
+                attract_sig_val_list = update_grid(attract_sig_val_list, x_pos, y_pos, -1);
+              }
+              else if(ex_type =="repulse"){
+                repel_sig_val_list = update_grid(repel_sig_val_list, x_pos, y_pos, -1);
+              }
+            }
+            update_signals();
+          }
+
+          else if (command == SOURCE_ATTRACT_VAR){
+            var cell_id = entry[1];
+
+            var backwards_correction = 1;
+            if (!(FORWARD)){
+              backwards_correction = -1;
+            }
+
+            signal_list[cell_id] = "attract";
+            var unparsed_pos = entry[1].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+
+            attract_sig_val_list = update_grid(attract_sig_val_list, x_pos, y_pos, 1*backwards_correction);
+            update_signals();
+          }
+
+          else if(command == SOURCE_REPULSE_VAR){
+            var cell_id = entry[1];
+
+            var backwards_correction = 1;
+            if (!(FORWARD)){
+              console.info("We're not in Kansas anymore.");
+              backwards_correction = -1;
+            }
+
+            signal_list[cell_id] = "repulse";
+            var unparsed_pos = entry[1].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+
+            repel_sig_val_list = update_grid(repel_sig_val_list, x_pos, y_pos, 1*backwards_correction);
+            update_signals();
+          }
+
+          else if(command == ATTRACT_VAR){
+            var unparsed_pos = entry[1].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+
+            if (unparsed_pos in signal_list){
+              scene.remove(signal_list[unparsed_pos]);
+            }
+
+            activation_signal_list[unparsed_pos] = new THREE.Mesh(geometrySmallSquare, materialAttract);
+            activation_signal_list[unparsed_pos].position.x = x_pos;
+            activation_signal_list[unparsed_pos].position.z = y_pos;
+            scene.add(activation_signal_list[unparsed_pos]);
+          }
+
+          else if(command == REPULSE_VAR){
+            var unparsed_pos = entry[1].split(',');
+            var x_pos = parseFloat(unparsed_pos[0]);
+            var y_pos = parseFloat(unparsed_pos[1]);
+
+            if (unparsed_pos in activation_signal_list){
+              scene.remove(activation_signal_list[unparsed_pos]);
+            }
+
+            activation_signal_list[unparsed_pos] = new THREE.Mesh(geometrySmallSquare, materialRepulse);
+            scene.add(activation_signal_list[unparsed_pos]);
+            activation_signal_list[unparsed_pos].position.x = x_pos;
+            activation_signal_list[unparsed_pos].position.z = y_pos;
+          }
+
+          else if (command == GROW_VAR) {
+            var cell_id = entry[1];
+            sphere_list[cell_id].scale.x += 0.1
+            sphere_list[cell_id].scale.y += 0.1
+            sphere_list[cell_id].scale.z += 0.1
+          }
+
+          else if (command == SHRINK_VAR) {
+            var cell_id = entry[1];
+            sphere_list[cell_id].scale.x -= 0.1
+            sphere_list[cell_id].scale.y -= 0.1
+            sphere_list[cell_id].scale.z -= 0.1
+          }
+          //count = count + 1;
+          if (FORWARD){
+            count = count + 1;
+          }
+          else{
+            count = count - 1;
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+      controls.update();
+
+    }
+
+
+  }
+
+  function pauseFunc(){
+    if(PAUSED){
+      PAUSED = false;
+      $("#pauseButton").html('Pause');
+    }
+    else{
+      PAUSED = true;
+      $("#pauseButton").html('Play');
+    }
+  }
+
+  function changeDir(){
+    if(FORWARD){
+      FORWARD = false;
+      BIRTH_VAR = "die";
+      SHRINK_VAR = "grow";
+      GROW_VAR = "shrink";
+      REPULSE_VAR = "attract";
+      ATTRACT_VAR = "repulse";
+      SOURCE_REPULSE_VAR = "source_repulse";
+      SOURCE_ATTRACT_VAR = "source_attract";
+      REMOVE_SOURCE_VAR = "remove_source";
+      DIE_VAR = "birth";
+      REPAIR_VAR = "repair";
+      $("#directionButton").html('Forwards');
+    }
+    else{
+      FORWARD = true;
+      BIRTH_VAR = "birth";
+      SHRINK_VAR = "shrink";
+      GROW_VAR = "grow";
+      REPULSE_VAR = "repulse";
+      ATTRACT_VAR = "attract";
+      SOURCE_REPULSE_VAR = "source_repulse";
+      SOURCE_ATTRACT_VAR = "source_attract";
+      REMOVE_SOURCE_VAR = "remove_source";
+      DIE_VAR = "die";
+      REPAIR_VAR = "repair";
+      $("#directionButton").html('Backwards');
+    }
+  }
+
+  function showhideSignals(){
+    if (HIDE_SIGNALS){
+      HIDE_SIGNALS = false;
+      $("#chemsigButton").html('Hide Signals');
+    }
+    else{
+      HIDE_SIGNALS = true;
+      $("#chemsigButton").html('Show Signals');
+    }
+
+    SIGNAL_CHANGE = true;
+  }
+
+  function showhideGrid(){
+    if (HIDE_GRID){
+      HIDE_GRID = false;
+      $("#gridButton").html('Hide Grid');
+    }
+    else{
+      HIDE_GRID = true;
+      $("#gridButton").html('Show Grid');
+    }
+    GRID_CHANGE = true;
+  }
+
+  function setSpeed(){
+    SIMULATION_SPEED = parseInt(document.getElementById('simSpeed').value);
+  }
+
+  function stopAndDestroy(){
+
+    STOPPED = true;
+  }
+
+
+  </script>
+  <div id="UIbuttonsTest">
+    <p>Playback Controls</p>
+    <div class="slidecontainer">
+      <input type="range" min="10" max="1000" value="100" class="slider" id="myRange">
+    </div>
+    <input id="simSpeed" class="uiinput" type="text" name="test_text" value="100">
+    <input id="simSpeedSubmit" class="uiinput" type="submit" name="test_button" value="Submit" onclick="javascript: setSpeed();">
+    <button id="pauseButton" class="ui-button" onclick="javascript: pauseFunc();">Play</button>
+    <button id="stopButton" class="ui-button" onclick="javascript: stopAndDestroy();">Stop</button>
+    <button id="directionButton" class="ui-button" onclick="javascript: changeDir();">Backwards</button>
+    <button id="chemsigButton" class="ui-button" onclick="javascript: showhideSignals();">Show Signals</button>
+    <button id="gridButton" class="ui-button" onclick="javascript: showhideGrid();">Show Grid</button>
+  </div>
+
+  <div id= "legend_wrapper">
+    <div id="Legend">
+      <p>Blue Ball = Static OPC</p>
+      <p>Red Ball = Moving OPC</p>
+      <p>Yellow Ball = Oligodendrocyte</p>
+      <p>Red 3D Cube = Lesion</p>
+      <p>Red 2D Square = Chemo-Reppelent</p>
+      <p>Green 2D Square = Chemo-Attractant</p>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var slider = document.getElementById("myRange");
+    // var output = document.getElementById("simSpeed");
+    // output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+      document.getElementById("simSpeed").value = slider.value;
+      setSpeed();
+    }
+  </script>
+</body>
+</html>
