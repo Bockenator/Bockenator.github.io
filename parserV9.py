@@ -9,7 +9,7 @@ duplications = 0
 signalssent = 0
 
 
-file = open("test_rand_dir.txt","w")
+file = open("repel.txt","w")
 
 pcounter = 0
 dcounter = 0
@@ -20,6 +20,7 @@ acounter = 0
 rcounter = 0
 
 p_dic = {}
+cell_z_vals = {}
 d_dic = {}
 c_dic = {}
 l_dic = {}
@@ -48,10 +49,12 @@ for line in sys.stdin:
         if int(p) > 0:
             y = (i % 16)*10 - 75
             x = (i // 16)*10 - 75
-            file.write("birth P "+str(pcounter)+" "+str(float(x))+","+str(float(y))+'\n')
-
+            z = random.uniform(-5.0,5.0)
+            cell_z_vals[str(pcounter)] = z
+            file.write("birth P "+str(pcounter)+" "+str(float(x))+","+str(float(y))+","+str(float(z))+'\n')
             #store opc by grid cell location
             key = repr([(i // 16),(i % 16)])
+
             if key in p_dic:
                 p_dic[key].append(pcounter)
             else:
@@ -87,7 +90,8 @@ for line in sys.stdin:
         if int(m) > 0:
             y = (i % 16)*10 - 75
             x = (i // 16)*10 - 75
-            #file.write("birth M "+str(pcounter)+" "+str(float(x))+","+str(float(y))+'\n')
+            cell_z_vals[str(pcounter)] = z
+            file.write("birth P "+str(pcounter)+" "+str(float(x))+","+str(float(y))+","+str(float(z))+'\n')
             pcounter = pcounter + 1
         i = i + 1
 
@@ -141,12 +145,12 @@ for line in sys.stdin:
 
 #write that setup is finished and pause playBack
 file.write("finished_setup\n")
-
+print("CONFIG OK")
 cell_id_counter = 3000
 
 # for key in p_dic:
 #     print(key)
-trace = open("meta_files/OutputProbWider6_10_meta.txt","r")
+trace = open("meta_files/JustRepellent.txt","r")
 trace.seek(0)
 
 
@@ -164,7 +168,8 @@ def getTargetDiffPosition(x, y, num_opc_in_cell):
     y -= 5
     rand_x = random.uniform(0,10)
     rand_y = random.uniform(0,10)
-    return [x+rand_x, y+rand_y]
+    rand_z = random.uniform(-5.0,5.0)
+    return [x+rand_x, y+rand_y, rand_z]
 #give each cell a seperate target coordinate so overlap of OPC is not so drastic
 # def getTargetPosition(x, y, num_opc_in_cell):
 #     x -= 5
@@ -180,10 +185,11 @@ def getTargetPosition(x, y, num_opc_in_cell):
     y -= 5
     rand_x = random.uniform(0,10)
     rand_y = random.uniform(0,10)
-    return [x+rand_x, y+rand_y]
+    rand_z = random.uniform(-5.0,5.0)
+    return [x+rand_x, y+rand_y, rand_z]
 
 #path interpolation of a moving OPC
-def getPath(x_start, y_start, x_end, y_end, time_taken):
+def getPath(x_start, y_start, z_start, x_end, y_end, z_end, time_taken):
     #print("IN PATH")
     #print("X START "+str(x_start))
     #print("Y START "+str(y_start))
@@ -194,9 +200,7 @@ def getPath(x_start, y_start, x_end, y_end, time_taken):
     y_path = []
     z_path = []
 
-    #height setup
-    z_max_height = random.uniform(-5.0, 5.0)
-    z_current_height = 0;
+
 
     if (time_taken < 0.01):
         divi = 2
@@ -205,18 +209,9 @@ def getPath(x_start, y_start, x_end, y_end, time_taken):
     else:
         divi = 10
 
-    dz = z_max_height/(divi/2)
-
-    #up
-    for i in range(0,(divi/2)):
-        z_current_height+= dz
-        z_path.append(z_current_height)
-
-    #down
-    for i in range(0,(divi/2)):
-        z_current_height-= dz
-        z_path.append(z_current_height)
-
+    dz = abs(z_start - float(z_end))/float(divi)
+    if (dz < 0.01):
+        dz = 0.01
     dx = abs(x_start - float(x_end))/float(divi)
     if (dx < 0.01):
         dx = 0.01
@@ -230,9 +225,12 @@ def getPath(x_start, y_start, x_end, y_end, time_taken):
         dx = 0
     if dy < 0.01:
         dy = 0
+    if dz < 0.01:
+        dz = 0
 
     x = x_start
     y = y_start
+    z = z_start
     #print("STARTED X")
     if (x_end > x_start):
         while ((x < x_end) and ((x_end - x) > 0.01)):
@@ -253,20 +251,60 @@ def getPath(x_start, y_start, x_end, y_end, time_taken):
         while ((y > y_end)  and ((y - y_end) > 0.01)):
             y-=dy
             y_path.append(y)
+
+
+    if(z_end > z_start):
+        #for y in range(y_start, y_end):
+        while ((z < z_end)  and ((z_end - z) > 0.01)):
+            z+=dz
+            z_path.append(z)
+    else:
+        while ((z > z_end)  and ((z - z_end) > 0.01)):
+            z-=dz
+            z_path.append(z)
     #print("FINISHED Y")
 
     if len(x_path) == 0:
         x_path.append(x_end)
     if len(y_path) == 0:
         y_path.append(y_end)
+    if len(z_path) == 0:
+        z_path.append(z_end)
 
-    if len(x_path) > len(y_path):
-        for z in range(0, len(x_path)-len(y_path)):
-            y_path.append(y_path[len(y_path)-1])
+    if (len(z_path) > len(x_path)) and (len(z_path) > len(y_path)):
+        if len(x_path) > len(y_path):
+            for z in range(0, len(x_path)-len(y_path)):
+                y_path.append(y_path[len(y_path)-1])
+            for z in range(0, len(z_path)-len(x_path)):
+                x_path.append(x_path[len(x_path)-1])
+                y_path.append(y_path[len(y_path)-1])
+        else:
+            for z in range(0, len(y_path)-len(x_path)):
+                x_path.append(x_path[len(x_path)-1])
+            for z in range(0, len(z_path)-len(y_path)):
+                x_path.append(x_path[len(x_path)-1])
+                y_path.append(y_path[len(y_path)-1])
     else:
-        for z in range(0, len(y_path)-len(x_path)):
-            x_path.append(x_path[len(x_path)-1])
-
+        if len(x_path) > len(y_path):
+            if (len(y_path) < len(z_path)):
+                for z in range(0, len(z_path)-len(y_path)):
+                    y_path.append(y_path[len(y_path)-1])
+            else:
+                for z in range(0, len(y_path)-len(z_path)):
+                    z_path.append(z_path[len(z_path)-1])
+            for z in range(0, len(x_path)-len(z_path)):
+                z_path.append(z_path[len(z_path)-1])
+                y_path.append(y_path[len(y_path)-1])
+        else:
+            if (len(x_path) < len(z_path)):
+                for z in range(0, len(x_path)-len(x_path)):
+                    x_path.append(x_path[len(x_path)-1])
+            else:
+                for z in range(0, len(x_path)-len(z_path)):
+                    z_path.append(z_path[len(z_path)-1])
+            for z in range(0, len(z_path)-len(y_path)):
+                x_path.append(x_path[len(x_path)-1])
+                y_path.append(y_path[len(y_path)-1])
     #print("FINISHED PATH")
     return x_path, y_path, z_path
 
@@ -274,22 +312,26 @@ def getPath(x_start, y_start, x_end, y_end, time_taken):
 def getGrowth(start_time, end_time, key, x, y, cell_id_counter):
 
     cell = p_dic[key][0]
-
+    z = cell_z_vals[str(cell)]
     delta_time = end_time - start_time
 
     increment = delta_time/10
 
     rand_direction = random.uniform(0, 2*math.pi)
+    rand_z_dir = random.uniform(0, 2*math.pi)
     x_inc = 0.3*math.sin(rand_direction)
     if (abs(x_inc) < 0.03):
         x_inc = 0
     y_inc = 0.3*math.cos(rand_direction)
     if(abs(y_inc) < 0.03):
         y_inc = 0
+    z_inc = 0.3*math.sin(rand_z_dir)
+    if(abs(z_inc) < 0.03):
+        z_inc = 0
 
     if key in p_dic:
         p_dic[key].append(cell_id_counter+1)
-        output.append((start_time,("birth P "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y))+'\n')))
+        output.append((start_time,("birth P "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y))+","+str(float(z))+'\n')))
     else:
         print("INVALID DUPLICATION AT "+key)
 
@@ -302,17 +344,25 @@ def getGrowth(start_time, end_time, key, x, y, cell_id_counter):
     for i in range(0,5):
         output.append((new_time, ("shrink "+str(cell)+"\n")))
         output.append((new_time, ("shrink "+str(cell_id_counter)+"\n")))
-        output.append((new_time, ("move "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y))+",0)\n")))
+        output.append((new_time, ("move "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y))+","+str(float(z))+"\n")))
         new_time += increment
         y+=y_inc
         x+=x_inc
-    output.append((new_time, ("die P "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y-0.4))+'\n')))
-    output.append((new_time,("birth S "+str(cell_id_counter+1)+" "+str(float(x))+","+str(float(y))+'\n')))
+        z+=z_inc
+    output.append((new_time, ("die P "+str(cell_id_counter)+" "+str(float(x))+","+str(float(y-0.4))+","+str(float(z))+'\n')))
+    output.append((new_time,("birth S "+str(cell_id_counter+1)+" "+str(float(x))+","+str(float(y))+","+str(float(z))+'\n')))
     #print("ADDING "+str(cell_id_counter))
     moving_cell_pos[cell_id_counter+1] = [float(x), float(y-1)]
+    cell_z_vals[str(cell_id_counter+1)] = float(z)
     #print("ADDED "+str(x)+" "+str(y-1))
 
-
+def repair_process(lesion, init_time, end_time):
+    d_time = (end_time - init_time)/float(10)
+    c_time = init_time
+    for i in range(0,5):
+        output.append((c_time, ("partial "+str(lesion)+'\n')))
+        print(str(c_time))
+        c_time+=d_time
 
 
 output = []
@@ -320,6 +370,7 @@ moving_cell_pos = {}
 moving_cells = {}
 num_diff_cells_in_square = {}
 in_duplication = {}
+in_repairing = {}
 signal_list={}
 time_list = []
 counter = 0
@@ -346,7 +397,6 @@ for line in trace:
         x_start = cell_x*10 - 75
         y_start = cell_y*10 - 75
         key = repr([cell_x, cell_y])
-
         getGrowth(in_duplication[key], time, key, x_start, y_start, cell_id_counter)
         cell_id_counter+=2
         duplications+=1
@@ -368,7 +418,7 @@ for line in trace:
 
         if key in d_dic:
             les = d_dic[key].pop()
-
+        repair_process(les, in_repairing[key], time)
         #output.append("die "+str(opc)+'\n')
         output.append((time, ("repair "+str(les)+" "+str(x_start)+","+str(y_start)+'\n')))
         if key in signal_list:
@@ -382,28 +432,31 @@ for line in trace:
             print("HAHA you tried to repair a non-existent cell")
             sys.exit()
 
-    elif comps[1][:4] == "diff":
+    elif (comps[1][:4] == "diff"):
         cell_x = int(comps[7])
         cell_y = int(comps[8])
         x_e = cell_x*10 - 75
         y_e = cell_y*10 - 75
-        print(str(x_e)+","+str(y_e))
         key = repr([cell_x, cell_y])
 
+        if not key in in_repairing:
+            in_repairing[key] = time
         #try and get one normal thing
         if key in p_dic:
+            print(str(p_dic[key]))
             opc = p_dic[key].pop()
-
+            z_val = cell_z_vals[str(opc)]
+            del cell_z_vals[str(opc)]
             #update the number differentiated cells in a square
             if key in num_diff_cells_in_square:
                 num_diff_cells_in_square[key]+=1
             else:
                 num_diff_cells_in_square[key] = 1
 
-            output.append((time, ("die S "+str(opc)+" "+str(x_e)+","+str(y_e)+'\n')))
-            x_e, y_e = getTargetDiffPosition(x_e, y_e, num_diff_cells_in_square[key])
+            output.append((time, ("die S "+str(opc)+" "+str(x_e)+","+str(y_e)+","+str(z_val)+'\n')))
+            x_e, y_e, z_e = getTargetDiffPosition(x_e, y_e, num_diff_cells_in_square[key])
             cell_id_counter+=1
-            output.append((time, ("birth M "+str(cell_id_counter)+" "+str(x_e)+","+str(y_e)+'\n')))
+            output.append((time, ("birth M "+str(cell_id_counter)+" "+str(x_e)+","+str(y_e)+","+str(z_e)+'\n')))
             cell_id_counter+=1
 
         #otherwise get one from the moving list
@@ -420,9 +473,10 @@ for line in trace:
             #y_start = cell_y*10 - 75
             #print("GETTING "+str(opc))
             [x_start, y_start] = moving_cell_pos[opc]
+            z_val = cell_z_vals[str(opc)]
             #print("GOT "+str(x_start)+" "+str(y_start))
-            x_end, y_end = getTargetPosition(x_e, y_e, num_opc_in_cell)
-            path = getPath(x_start, y_start, x_end, y_end, (time - start_time))
+            x_end, y_end, z_end = getTargetPosition(x_e, y_e, num_opc_in_cell)
+            path = getPath(x_start, y_start, z_val, x_end, y_end, z_end, (time - start_time))
             dtime = (time - start_time)/float(len(path[0]))
             for x in range(0, len(path[0])):
                 start_time += dtime
@@ -430,8 +484,10 @@ for line in trace:
 
             last_x = float(path[0][-1])
             last_y = float(path[1][-1])
+            last_z = float(path[2][-1])
             #print("DOING: "+str(last_x)+" "+str(last_y))
             moving_cell_pos[opc] = [last_x, last_y]
+            cell_z_vals[str(opc)] = last_z
             #print("DONE")
             #moving_cell_pos[opc] = [1,1]
 
@@ -441,9 +497,9 @@ for line in trace:
             else:
                 num_diff_cells_in_square[key] = 1
 
-            output.append((time+dtime, ("die S "+str(opc)+" "+str(x_e)+","+str(y_e)+'\n')))
-            x_e, y_e = getTargetDiffPosition(x_e, y_e, num_diff_cells_in_square[key])
-            output.append((time, ("birth M "+str(cell_id_counter)+" "+str(x_e)+","+str(y_e)+'\n')))
+            output.append((time+dtime, ("die S "+str(opc)+" "+str(x_e)+","+str(y_e)+","+str(z_val)+'\n')))
+            x_e, y_e, z_e = getTargetDiffPosition(x_e, y_e, num_diff_cells_in_square[key])
+            output.append((time, ("birth M "+str(cell_id_counter)+" "+str(x_e)+","+str(y_e)+","+str(z_e)+'\n')))
             cell_id_counter+=1
 
         #otherwise we're fucked
@@ -554,6 +610,7 @@ for line in trace:
         #get the opc being reffered to
         if key in moving_cells:
             start_time, opc = moving_cells[key][0]
+            z_val = cell_z_vals[str(opc)]
             del moving_cells[key][0]
 
             num_opc_in_cell = 0
@@ -576,8 +633,8 @@ for line in trace:
             #print("GOT "+str(x_start)+" "+str(y_start))
             x_e = target_x*10 - 75
             y_e = target_y*10 - 75
-            x_end, y_end = getTargetPosition(x_e, y_e, num_opc_in_cell)
-            path = getPath(x_start, y_start, x_end, y_end, (time - start_time))
+            x_end, y_end, z_end= getTargetPosition(x_e, y_e, num_opc_in_cell)
+            path = getPath(x_start, y_start, z_val, x_end, y_end, z_end, (time - start_time))
             dtime = (time - start_time)/float(len(path[0]))
             for x in range(0, len(path[0])):
                 start_time += dtime
@@ -585,8 +642,10 @@ for line in trace:
 
             last_x = float(path[0][-1])
             last_y = float(path[1][-1])
+            last_z = float(path[2][-1])
             #print("DOING: "+str(last_x)+" "+str(last_y))
             moving_cell_pos[opc] = [last_x, last_y]
+            cell_z_vals[str(opc)] = last_z
             #print("DONE")
             #moving_cell_pos[opc] = [1,1]
 
@@ -608,6 +667,8 @@ for line in trace:
                 del p_dic[key][x]
             if p_dic[key] == []:
                 del p_dic[key]
+
+
 
             #add it to the new cell
             if t_key in moving_cells:

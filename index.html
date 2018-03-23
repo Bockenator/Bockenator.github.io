@@ -44,6 +44,22 @@
         background-color: #111;
       }
 
+      .green-button {
+          background-color: #4CAF50; /* Green */
+          border: none;
+          width: 100%;
+          color: white;
+          padding: 15px 32px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          cursor: pointer;
+      }
+      .green-button:hover {
+          background-color: #3e8e41;
+      }
+
       .active {
         background-color: #4CAF50;
       }
@@ -114,7 +130,7 @@
         background-image: url("https://bockenator.github.io/oligodendrocytes.jpg");
 
         /* Set a specific height */
-        height: 1000px;
+        height: 700px;
 
         /* Create the parallax scrolling effect */
         background-attachment: fixed;
@@ -156,8 +172,9 @@
         by a python script and interpolated so that more meaningful visual data can be extracted from the meta files. The newly created file is what is
         played by the javascript contained on this page.</p>
       <br>
-      <button>Proceed To Visualisation</button>
+      <button class="green-button" onclick="location.href='http://bockenator.github.io/visual';">Proceed To Visualisation</button>
     </div>
   </div>
 </body>
 </html>
+
