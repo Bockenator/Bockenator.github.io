@@ -360,6 +360,7 @@
         <div id="myBar"></div>
       </div>
       <pre id="fileDisplayArea" style="text-align: center;"></pre>
+      <pre style="test-align: center;">days passed since start</pre>
     </div>
   </div>
 
@@ -383,12 +384,18 @@
   //update bar by percentage based on the total time of Visualisation
   function update_bar(){
     var elem = document.getElementById("myBar");
-    if (bar_prog < 100){
+    if (bar_prog <= 100){
       if(FORWARD){
         bar_prog+=bar_width;
+        if (bar_prog > 96){
+          bar_prog = 100;
+        }
       }
       else{
         bar_prog-=bar_width;
+        if (bar_prog < 5){
+          bar_prog = 0;
+        }
       }
       elem.style.width = bar_prog+'%';
       elem.innerHTML = parseInt(bar_prog) * 1 + '%';
@@ -420,7 +427,7 @@
   var RUNNING = false;
   var STOPPED = false;
   var ANIMATION_ID;
-  var HIDE_SIGNALS = true;
+  var HIDE_SIGNALS = false;
   var HIDE_GRID = true;
   var GRID_CHANGE = false;
   var SIGNAL_CHANGE = false;
@@ -528,7 +535,7 @@
     RUNNING = false;
     STOPPED = false;
     ANIMATION_ID;
-    HIDE_SIGNALS = true;
+    HIDE_SIGNALS = false;
     HIDE_GRID = true;
     GRID_CHANGE = false;
     SIGNAL_CHANGE = false;
@@ -807,26 +814,7 @@
         red = red_val/parseFloat(red_val+green_val) * 255;
         green = green_val/parseFloat(red_val+green_val) * 255;
       }
-      // if (red > green){
-      //   red = red * Math.abs(red - green);
-      // }
-      // else{
-      //   green = green * Math.abs(red - green);
-      // }
 
-      // var ratio_calc = true;
-      // if(green_val == 0){
-      //   green = 0;
-      //   ratio_calc = false;
-      // }
-      // if(red_val == 0){
-      //   red = 0;
-      //   ratio_calc = false;
-      // }
-      // // if(ratio_calc){
-      // //   red = (1/parseFloat(val)) * 10;
-      // //   green = parseFloat(val) * 10;
-      // // }
       var string = "rgb("+String(parseInt(red))+", " +String(parseInt(green))+", 0)";
       if ((red < 50)&&(green < 50)){
         console.info(red_val+" "+green_val+" "+string);
@@ -916,7 +904,25 @@
 
 
       for (var j = 1; j<= SIMULATION_SPEED; j++) {
-        if ((count < (loop_length)) && ((count >= 0) || FORWARD)){
+
+        if(FORWARD){
+          if (count >= (loop_length - 1) ){
+            SIMULATION_SPEED = 0;
+          }
+          else if ((count+SIMULATION_SPEED) >= (loop_length-1)){
+            SIMULATION_SPEED = (loop_length - count)-100;
+          }
+        }
+        else{
+          if (count <= 300){
+            SIMULATION_SPEED = 0;
+          }
+          else if((count-SIMULATION_SPEED) <= 300){
+            SIMULATION_SPEED = count-1;
+          }
+        }
+
+        if ((((count+SIMULATION_SPEED) < loop_length) || (!(FORWARD))) && (((count-SIMULATION_SPEED) > 0) || FORWARD)){
           //count = 0;
 
           //var command = rem_text[count].match(/^(\S+)\s(.*)/).slice(1);
@@ -1217,6 +1223,7 @@
       REPAIR_VAR = "repair";
       $("#directionButton").html('Backwards');
     }
+    SIMULATION_SPEED = parseInt(document.getElementById('simSpeed').value);
   }
 
   function showhideSignals(){
@@ -1259,16 +1266,15 @@
     <h3>Playback Controls</h3>
     <p>You can move the camera by clicking and dragging using the left and right mouse buttons</p>
     <p>To start a new visualisation press the "Stop" button</p>
-    <p>Set the speed using the slider</p>
     <div class="slidecontainer">
       <input type="range" min="10" max="1000" value="100" class="slider" id="myRange">
     </div>
     <input id="simSpeed" class="uiinput" type="text" name="test_text" value="100">
     <input id="simSpeedSubmit" class="uiinput" type="submit" name="test_button" value="Submit" onclick="javascript: setSpeed();">
     <button id="pauseButton" class="ui-button" onclick="javascript: pauseFunc();">Play</button>
-    <button id="stopButton" class="ui-button" onclick="javascript: stopAndDestroy();">Stop</button>
+    <button id="stopButton" class="ui-button" onclick="javascript: stopAndDestroy();">Quit</button>
     <button id="directionButton" class="ui-button" onclick="javascript: changeDir();">Backwards</button>
-    <button id="chemsigButton" class="ui-button" onclick="javascript: showhideSignals();">Show Signals</button>
+    <button id="chemsigButton" class="ui-button" onclick="javascript: showhideSignals();">Hide Signals</button>
     <button id="gridButton" class="ui-button" onclick="javascript: showhideGrid();">Show Grid</button>
   </div>
 
@@ -1279,6 +1285,7 @@
       <p>Oligodendrocyte  <img src="https://bockenator.github.io/Oligodendrocyte.png" alt="Oligodendrocyte Image" style="width:20px;height:20px;"></p>
       <p>Lesion  <img src="https://bockenator.github.io/lesion.png" alt="Lesion Image" style="width:20px;height:20px;"></p>
       <h3> Lesion Signals </h3>
+      <p>The colour gradient shows how each signal affects cell movement towards the central lesion. More attractive signals move a cell towards the lesion and repulsive signals move them away.</p>
       <p> Repulsive </p>
       <img src= "https://bockenator.github.io/gradient.png" alt="Gradient Image">
       <p> Attractive </p>
@@ -1297,4 +1304,3 @@
   </script>
 </body>
 </html>
-
